@@ -756,10 +756,11 @@ addEventListener('resize',init);init();draw();
    1) Create a free form at formspree.io, paste its URL below (https://formspree.io/f/xxxxxxx).
    2) Visitors' testimonials arrive in your email. To publish one, add it to testimonials.json and commit. */
 const FORM_URL="https://formspree.io/f/mrpeqdrb";
+const SHEET_URL="https://script.google.com/macros/s/AKfycbzz4Jct5WwHQO7JDQKPzu9d03BNFf5ruKl5B5cGFfLXeuGcC7bMgIgoGMJ84EHTNN_i/exec";/* paste your Google Apps Script Web App URL here */
 (async()=>{
 const T=k=>D[R.lang==='ar'?'ar':'en'][k]||k,$=id=>document.getElementById(id);
 let appr=[];
-try{const r=await fetch('testimonials.json?'+Date.now());if(r.ok){const j=await r.json();appr=Array.isArray(j)?j:[]}}catch(e){}
+try{const r=await fetch(SHEET_URL||('testimonials.json?'+Date.now()));if(r.ok){const j=await r.json();appr=Array.isArray(j)?j:[]}}catch(e){}
 const card=d=>{const c=document.createElement('article');c.className='tmc';
  const q=document.createElement('div');q.className='qi';q.textContent='\u201C';
  const b=document.createElement('blockquote');b.textContent=d.msg||'';
@@ -782,8 +783,10 @@ $('tmForm').addEventListener('submit',async e=>{e.preventDefault();
  const name=$('tmName').value.trim().slice(0,60),role=$('tmRole').value.trim().slice(0,80),msg=$('tmMsg').value.trim().slice(0,600);
  if(!name||!msg)return;const btn=$('tmSend');
  const mail=()=>{note.textContent=T('tm_mail');location.href='mailto:'+CONTACT.email+'?subject='+encodeURIComponent('Testimonial from '+name)+'&body='+encodeURIComponent(msg+'\n\n- '+name+(role?', '+role:''))};
- if(!FORM_URL){mail();return}
+ if(!FORM_URL&&!SHEET_URL){mail();return}
  btn.disabled=true;
+ if(SHEET_URL){try{fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({name,role,msg})})}catch(e){}}
+ if(!FORM_URL){note.textContent=T('tm_ok');$('tmForm').reset();btn.disabled=false;return}
  try{const r=await fetch(FORM_URL,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({name,role,message:msg,_subject:'New testimonial from '+name})});
   if(!r.ok)throw 0;note.textContent=T('tm_ok');$('tmForm').reset()}
  catch(x){note.textContent=T('tm_err')}
